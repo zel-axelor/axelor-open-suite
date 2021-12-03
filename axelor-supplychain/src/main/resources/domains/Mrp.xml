@@ -29,6 +29,7 @@
       default="false"/>
     <string name="errorLog" title="Error that happened during the computation"
       readonly="true" large="true"/>
+    <boolean name="takeInAccountSubCategories" title="Take in account sub categories"/>
 
     <extra-code><![CDATA[
 
