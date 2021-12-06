@@ -72,6 +72,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -883,7 +884,7 @@ public class ManufOrderServiceImpl implements ManufOrderService {
                 childBom,
                 null,
                 manufOrder.getPlannedStartDateT(),
-                ORIGIN_TYPE_OTHER);
+                0);
 
         moList.add(manufOrder);
         productManufactured.add(childBom.getProduct());
@@ -931,5 +932,28 @@ public class ManufOrderServiceImpl implements ManufOrderService {
       }
     }
     return bomList;
+  }
+
+  @Override
+  @Transactional
+  public List<Long> planSelectedOrdersAndDiscardOthers(List<Map<String, Object>> manufOrders)
+      throws AxelorException {
+    List<Long> ids = new ArrayList<>();
+
+    for (Map<String, Object> manufOrderMap : manufOrders) {
+      ManufOrder manufOrder =
+          manufOrderRepo.find(Long.valueOf((manufOrderMap.get("id").toString())));
+
+      if ((boolean) manufOrderMap.get("selected")) {
+
+        Beans.get(ManufOrderWorkflowService.class).plan(manufOrder);
+
+        ids.add(manufOrder.getId());
+
+      } else {
+        manufOrderRepo.remove(manufOrder);
+      }
+    }
+    return ids;
   }
 }
