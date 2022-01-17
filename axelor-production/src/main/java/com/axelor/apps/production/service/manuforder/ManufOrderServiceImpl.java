@@ -35,6 +35,7 @@ import com.axelor.apps.production.db.ProdProcessLine;
 import com.axelor.apps.production.db.ProdProduct;
 import com.axelor.apps.production.db.ProdResidualProduct;
 import com.axelor.apps.production.db.ProductionConfig;
+import com.axelor.apps.production.db.repo.BillOfMaterialRepository;
 import com.axelor.apps.production.db.repo.ManufOrderRepository;
 import com.axelor.apps.production.db.repo.ProdProductRepository;
 import com.axelor.apps.production.exceptions.IExceptionMessage;
@@ -55,6 +56,7 @@ import com.axelor.apps.stock.service.StockMoveLineService;
 import com.axelor.apps.stock.service.StockMoveService;
 import com.axelor.apps.tool.StringTool;
 import com.axelor.common.StringUtils;
+import com.axelor.db.mapper.Mapper;
 import com.axelor.exception.AxelorException;
 import com.axelor.exception.db.repo.TraceBackRepository;
 import com.axelor.i18n.I18n;
@@ -877,15 +879,13 @@ public class ManufOrderServiceImpl implements ManufOrderService {
         }
 
         manufOrder =
-            generateManufOrder(
+            createDraftManufOrder(
                 childBom.getProduct(),
-                qtyRequested.multiply(childBom.getQty()),
+                qtyRequested,
                 childBom.getPriority(),
-                IS_TO_INVOICE,
                 childBom,
                 null,
-                manufOrder.getPlannedStartDateT(),
-                0);
+                manufOrder.getPlannedStartDateT());
 
         moList.add(manufOrder);
         productManufactured.add(childBom.getProduct());
@@ -935,24 +935,54 @@ public class ManufOrderServiceImpl implements ManufOrderService {
     return bomList;
   }
 
+  protected ManufOrder createDraftManufOrder(
+      Product product,
+      BigDecimal qtyRequested,
+      int priority,
+      BillOfMaterial billOfMaterial,
+      LocalDateTime plannedStartDateT,
+      LocalDateTime plannedEndDateT) {
+
+    ProdProcess prodProcess = billOfMaterial.getProdProcess();
+    Company company = billOfMaterial.getCompany();
+    return new ManufOrder(
+        qtyRequested,
+        company,
+        null,
+        priority,
+        false,
+        billOfMaterial,
+        product,
+        prodProcess,
+        plannedStartDateT,
+        plannedEndDateT,
+        ManufOrderRepository.STATUS_DRAFT);
+  }
+
   @Override
-  @Transactional
   public List<Long> planSelectedOrdersAndDiscardOthers(List<Map<String, Object>> manufOrders)
       throws AxelorException {
     List<Long> ids = new ArrayList<>();
 
     for (Map<String, Object> manufOrderMap : manufOrders) {
-      ManufOrder manufOrder =
-          manufOrderRepo.find(Long.valueOf((manufOrderMap.get("id").toString())));
+      ManufOrder manufOrder = Mapper.toBean(ManufOrder.class, manufOrderMap);
 
       if ((boolean) manufOrderMap.get("selected")) {
-
-        Beans.get(ManufOrderWorkflowService.class).plan(manufOrder);
+        BillOfMaterial billOfMaterial = manufOrder.getBillOfMaterial();
+        billOfMaterial = Beans.get(BillOfMaterialRepository.class).find(billOfMaterial.getId());
+        Product product = Beans.get(ProductRepository.class).find(manufOrder.getProduct().getId());
+        manufOrder =
+            generateManufOrder(
+                product,
+                manufOrder.getQty().multiply(billOfMaterial.getQty()),
+                billOfMaterial.getPriority(),
+                IS_TO_INVOICE,
+                billOfMaterial,
+                null,
+                manufOrder.getPlannedStartDateT(),
+                ORIGIN_TYPE_OTHER);
 
         ids.add(manufOrder.getId());
-
-      } else {
-        manufOrderRepo.remove(manufOrder);
       }
     }
     return ids;
