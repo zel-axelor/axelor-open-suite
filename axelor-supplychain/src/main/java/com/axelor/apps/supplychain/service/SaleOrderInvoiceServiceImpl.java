@@ -17,8 +17,6 @@
  */
 package com.axelor.apps.supplychain.service;
 
-import static com.axelor.apps.tool.StringTool.getIdListString;
-
 import com.axelor.apps.account.db.Account;
 import com.axelor.apps.account.db.Invoice;
 import com.axelor.apps.account.db.InvoiceLine;
@@ -29,7 +27,6 @@ import com.axelor.apps.account.db.repo.InvoiceRepository;
 import com.axelor.apps.account.service.FiscalPositionAccountService;
 import com.axelor.apps.account.service.app.AppAccountService;
 import com.axelor.apps.account.service.config.AccountConfigService;
-import com.axelor.apps.account.service.invoice.InvoiceService;
 import com.axelor.apps.account.service.invoice.generator.InvoiceGenerator;
 import com.axelor.apps.account.service.invoice.generator.InvoiceLineGenerator;
 import com.axelor.apps.base.db.Company;
@@ -46,12 +43,12 @@ import com.axelor.apps.sale.db.repo.SaleOrderRepository;
 import com.axelor.apps.sale.service.saleorder.SaleOrderComputeService;
 import com.axelor.apps.sale.service.saleorder.SaleOrderLineService;
 import com.axelor.apps.sale.service.saleorder.SaleOrderWorkflowServiceImpl;
-import com.axelor.apps.stock.db.StockMove;
 import com.axelor.apps.stock.db.repo.StockMoveRepository;
 import com.axelor.apps.supplychain.db.Timetable;
 import com.axelor.apps.supplychain.db.repo.TimetableRepository;
 import com.axelor.apps.supplychain.exception.IExceptionMessage;
 import com.axelor.apps.supplychain.service.app.AppSupplychainService;
+import com.axelor.apps.supplychain.service.invoice.InvoiceServiceSupplychainImpl;
 import com.axelor.apps.supplychain.service.invoice.generator.InvoiceGeneratorSupplyChain;
 import com.axelor.apps.supplychain.service.invoice.generator.InvoiceLineGeneratorSupplyChain;
 import com.axelor.common.ObjectUtils;
@@ -69,10 +66,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,7 +84,7 @@ public class SaleOrderInvoiceServiceImpl implements SaleOrderInvoiceService {
 
   protected InvoiceRepository invoiceRepo;
 
-  protected InvoiceService invoiceService;
+  protected InvoiceServiceSupplychainImpl invoiceService;
 
   protected SaleOrderLineService saleOrderLineService;
 
@@ -103,7 +98,7 @@ public class SaleOrderInvoiceServiceImpl implements SaleOrderInvoiceService {
       AppSupplychainService appSupplychainService,
       SaleOrderRepository saleOrderRepo,
       InvoiceRepository invoiceRepo,
-      InvoiceService invoiceService,
+      InvoiceServiceSupplychainImpl invoiceService,
       SaleOrderLineService saleOrderLineService,
       StockMoveRepository stockMoveRepository,
       SaleOrderWorkflowServiceImpl saleOrderWorkflowServiceImpl) {
@@ -847,7 +842,7 @@ public class SaleOrderInvoiceServiceImpl implements SaleOrderInvoiceService {
       invoiceService.setInvoiceForInvoiceLines(invoiceLines, invoiceMerged);
       invoiceMerged.setSaleOrder(null);
       invoiceRepo.save(invoiceMerged);
-      swapStockMoveInvoices(invoiceList, invoiceMerged);
+      invoiceService.swapStockMoveInvoices(invoiceList, invoiceMerged);
       invoiceService.deleteOldInvoices(invoiceList);
       return invoiceMerged;
     } else {
@@ -862,31 +857,10 @@ public class SaleOrderInvoiceServiceImpl implements SaleOrderInvoiceService {
               priceList,
               paymentMode,
               paymentCondition);
-      swapStockMoveInvoices(invoiceList, invoiceMerged);
+      invoiceService.swapStockMoveInvoices(invoiceList, invoiceMerged);
       invoiceService.deleteOldInvoices(invoiceList);
       return invoiceMerged;
     }
-  }
-
-  @Transactional
-  public void swapStockMoveInvoices(List<Invoice> invoiceList, Invoice newInvoice) {
-    com.axelor.db.Query<StockMove> stockMoveQuery =
-        stockMoveRepository
-            .all()
-            .filter("self.invoiceSet.id in (" + getIdListString(invoiceList) + ")");
-    stockMoveQuery
-        .fetch()
-        .forEach(
-            stockMove -> {
-              if (stockMove.getInvoiceSet() != null) {
-                stockMove.getInvoiceSet().add(newInvoice);
-              } else {
-                Set<Invoice> invoiceSet = new HashSet<>();
-                invoiceSet.add(newInvoice);
-                stockMove.setInvoiceSet(invoiceSet);
-              }
-              stockMoveRepository.save(stockMove);
-            });
   }
 
   @Override

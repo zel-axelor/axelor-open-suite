@@ -34,6 +34,7 @@ import com.axelor.apps.base.db.PriceList;
 import com.axelor.auth.db.User;
 import com.axelor.exception.AxelorException;
 import com.google.inject.persist.Transactional;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -168,6 +169,32 @@ public interface InvoiceService {
       PriceList priceList,
       PaymentMode paymentMode,
       PaymentCondition paymentCondition)
+      throws AxelorException;
+
+  public Invoice mergeInvoiceProcess(
+      List<Invoice> invoiceList,
+      Company company,
+      Currency currency,
+      Partner partner,
+      Partner contactPartner,
+      PriceList priceList,
+      PaymentMode paymentMode,
+      PaymentCondition paymentCondition,
+      String supplierInvoiceNb,
+      LocalDate originDate)
+      throws AxelorException;
+
+  public Invoice mergeInvoice(
+      List<Invoice> invoiceList,
+      Company company,
+      Currency currency,
+      Partner partner,
+      Partner contactPartner,
+      PriceList priceList,
+      PaymentMode paymentMode,
+      PaymentCondition paymentCondition,
+      String supplierInvoiceNb,
+      LocalDate originDate)
       throws AxelorException;
 
   public List<InvoiceLine> getInvoiceLinesFromInvoiceList(List<Invoice> invoiceList);

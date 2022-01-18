@@ -17,6 +17,8 @@
  */
 package com.axelor.apps.supplychain.service.invoice;
 
+import static com.axelor.apps.tool.StringTool.getIdListString;
+
 import com.axelor.apps.account.db.Invoice;
 import com.axelor.apps.account.db.MoveLine;
 import com.axelor.apps.account.db.repo.InvoiceRepository;
@@ -34,6 +36,8 @@ import com.axelor.apps.base.service.PartnerService;
 import com.axelor.apps.base.service.alarm.AlarmEngineService;
 import com.axelor.apps.sale.db.AdvancePayment;
 import com.axelor.apps.sale.db.SaleOrder;
+import com.axelor.apps.stock.db.StockMove;
+import com.axelor.apps.stock.db.repo.StockMoveRepository;
 import com.axelor.apps.supplychain.db.Timetable;
 import com.axelor.apps.supplychain.db.repo.TimetableRepository;
 import com.axelor.apps.supplychain.service.app.AppSupplychainService;
@@ -171,5 +175,27 @@ public class InvoiceServiceSupplychainImpl extends InvoiceServiceImpl {
           .flatMap(move -> moveToolService.getToReconcileCreditMoveLines(move).stream())
           .collect(Collectors.toList());
     }
+  }
+
+  @Transactional
+  public void swapStockMoveInvoices(List<Invoice> invoiceList, Invoice newInvoice) {
+    StockMoveRepository stockMoveRepository = Beans.get(StockMoveRepository.class);
+    com.axelor.db.Query<StockMove> stockMoveQuery =
+        stockMoveRepository
+            .all()
+            .filter("self.invoiceSet.id in (" + getIdListString(invoiceList) + ")");
+    stockMoveQuery
+        .fetch()
+        .forEach(
+            stockMove -> {
+              if (stockMove.getInvoiceSet() != null) {
+                stockMove.getInvoiceSet().add(newInvoice);
+              } else {
+                Set<Invoice> invoiceSet = new HashSet<>();
+                invoiceSet.add(newInvoice);
+                stockMove.setInvoiceSet(invoiceSet);
+              }
+              stockMoveRepository.save(stockMove);
+            });
   }
 }
