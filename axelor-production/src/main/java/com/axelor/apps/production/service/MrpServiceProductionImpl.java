@@ -19,7 +19,6 @@ package com.axelor.apps.production.service;
 
 import com.axelor.apps.base.db.Company;
 import com.axelor.apps.base.db.Product;
-import com.axelor.apps.base.db.repo.ProductCategoryRepository;
 import com.axelor.apps.base.db.repo.ProductRepository;
 import com.axelor.apps.base.service.ProductCompanyService;
 import com.axelor.apps.base.service.app.AppBaseService;
@@ -95,8 +94,7 @@ public class MrpServiceProductionImpl extends MrpServiceImpl {
       ManufOrderRepository manufOrderRepository,
       StockLocationService stockLocationService,
       ProductCompanyService productCompanyService,
-      BillOfMaterialService billOfMaterialService,
-      ProductCategoryRepository productCategoryRepository) {
+      BillOfMaterialService billOfMaterialService) {
     super(
         appProductionService,
         mrpRepository,
@@ -303,7 +301,8 @@ public class MrpServiceProductionImpl extends MrpServiceImpl {
     if (!Beans.get(AppProductionService.class).isApp("production")) {
       return;
     }
-    BillOfMaterial defaultBillOfMaterial = billOfMaterialService.getDefaultBOM(product);
+    Company company = mrp.getStockLocation().getCompany();
+    BillOfMaterial defaultBillOfMaterial = billOfMaterialService.getDefaultBOM(product, company);
 
     if (mrpLineType.getElementSelect() == MrpLineTypeRepository.ELEMENT_MANUFACTURING_PROPOSAL
         && defaultBillOfMaterial != null) {
@@ -393,7 +392,8 @@ public class MrpServiceProductionImpl extends MrpServiceImpl {
     log.debug("Add of the product : {}", product.getFullName());
     this.productMap.put(product.getId(), this.getMaxLevel(product, 0));
 
-    BillOfMaterial billOfMaterial = billOfMaterialService.getDefaultBOM(product);
+    Company company = mrp.getStockLocation().getCompany();
+    BillOfMaterial billOfMaterial = billOfMaterialService.getDefaultBOM(product, company);
     if (billOfMaterial != null) {
       this.assignProductLevel(billOfMaterial, 0);
     }
@@ -450,7 +450,8 @@ public class MrpServiceProductionImpl extends MrpServiceImpl {
         if (this.isMrpProduct(subProduct)) {
           this.assignProductLevel(subBillOfMaterial, level);
 
-          BillOfMaterial defaultBOM = billOfMaterialService.getDefaultBOM(subProduct);
+          Company company = mrp.getStockLocation().getCompany();
+          BillOfMaterial defaultBOM = billOfMaterialService.getDefaultBOM(subProduct, company);
           if (defaultBOM != null) {
             this.assignProductLevel(defaultBOM, level);
           }

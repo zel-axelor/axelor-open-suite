@@ -41,7 +41,7 @@
       <field name="lastPurchasePrice" readonly="true" colSpan="3"/>
       <field name="defaultBillOfMaterial" showIf="procurementMethodSelect != 'buy'"
         onSelect="action-product-company-attrs-bill-of-material-domain"
-        if="__config__.app.isApp('production') &amp;&amp;__config__.app.getApp('base')?.companySpecificProductFieldsList?.find({it.name == 'defaultBillOfMaterial'})"
+        if="__config__.app.isApp('production') &amp;&amp;__config__.app.getApp('base')?.companySpecificProductFieldsSet?.find({it.name == 'defaultBillOfMaterial'})"
         if-module="axelor-production"/>
     </panel>
   </form>
@@ -51,6 +51,7 @@
     <field name="product" expr="eval: __parent__"
       if="__parent__?._model == 'com.axelor.apps.base.db.Product'"/>
   </action-record>
+
   <action-attrs name="action-product-company-attrs-change-title-based-on-inAti">
     <attribute name="title" for="salePrice"
       expr="eval: com.axelor.i18n.I18n.get('Sale price A.T.I.')" if="product?.inAti"/>
@@ -86,4 +87,6 @@
     <attribute name="domain" for="defaultBillOfMaterial"
       expr="eval: &quot;self.product.id = ${product?.id} AND self.company.id = ${company?.id} AND self.defineSubBillOfMaterial = true&quot;"/>
   </action-attrs>
+
+
 </object-views>

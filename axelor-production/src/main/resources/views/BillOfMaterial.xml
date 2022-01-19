@@ -50,7 +50,8 @@
   <form name="bill-of-material-form" title="Bill of materials"
     model="com.axelor.apps.production.db.BillOfMaterial" width="large" canNew="!_isPersonalized"
     onSave="save,action-bill-of-material-method-name,action-bill-of-material-method-validate-prod-process"
-    onNew="action-bill-of-material-group-on-new" onLoad="action-bill-of-material-group-on-load">
+    onNew="action-bill-of-material-default-record,action-bill-of-material-attrs-price-and-qty-digits,action-bill-of-material-record-count-number-of-components"
+    onLoad="action-bill-of-material-group-on-load">
 
     <menubar>
       <menu name="bomReportsMenu" title="Reports">
@@ -73,7 +74,7 @@
         widget="NavSelect"/>
       <field name="$defaultBOMOnProduct" readonly="true" showTitle="false" colSpan="4">
         <viewer depends="$defaultBillOfMaterial">
-                    <![CDATA[
+          <![CDATA[
                         <h4 class="text-right">
                             <span class="label label-default" style="background-color: #009900; margin: 5px 0 !important; display: inline-table; line-height: initial;" ng-show="record.$defaultBillOfMaterial.id == record.id" x-translate>Default Bill of materials</span>
                             <span class="label label-default" style="background-color: #B6473F; margin: 5px 0 !important; display: inline-table; line-height: initial;" ng-show="record.$defaultBillOfMaterial.id != record.id" x-translate>Alternative Bill of materials</span>
@@ -82,7 +83,7 @@
       </field>
       <field name="fullName" showTitle="false" colSpan="12">
         <viewer depends="name">
-					<![CDATA[
+          <![CDATA[
 						<h3>
 							<span  style="margin: 5px 0 !important; display: inline-table; line-height: initial;">{{record.fullName}}</span>
 						</h3>
@@ -118,7 +119,7 @@
         <field name="$numberOfComponents" showTitle="false" readonly="true" colSpan="9"
           showIf="$numberOfComponents > 0">
           <viewer depends="$numberOfComponents">
-                        <![CDATA[
+            <![CDATA[
                             <h4 class="text-right">
                                 <span class="label label-default" style="background-color: #2185D0; margin: 5px 0 !important; display: inline-table; line-height: initial; border-top-right-radius: 0; border-bottom-right-radius: 0; padding-right: 0.4em;" x-translate>Number of components</span><span class="label label-default" style="background-color: #23C6C8; margin: 5px 0 !important; display: inline-table; line-height: initial; border-top-left-radius: 0; border-bottom-left-radius: 0;">{{record.$numberOfComponents}}</span>
                             </h4>
@@ -188,7 +189,7 @@
     <field name="qty" aggregate="sum" x-scale="2"/>
     <field name="unit" form-view="unit-form" grid-view="unit-grid"/>
     <field name="defineSubBillOfMaterial" readonly="true"
-      if="!__config__.app.getApp('base')?.companySpecificProductFieldsList?.find({it.name == 'defaultBillOfMaterial'})"/>
+      if="!__config__.app.getApp('base')?.companySpecificProductFieldsSet?.find({it.name == 'defaultBillOfMaterial'})"/>
     <field name="hasNoManageStock"/>
     <field name="prodProcess" readonlyIf="!defineSubBillOfMaterial"
       grid-view="prod-process-grid" form-view="prod-process-form"/>
@@ -204,13 +205,12 @@
         domain="self.productTypeSelect = 'storable' AND self.dtype = 'Product'"
         form-view="product-form" grid-view="product-grid"/>
       <field name="defineSubBillOfMaterial" colSpan="3"
-        if="!__config__.app.getApp('base')?.companySpecificProductFieldsList?.find({it.name == 'defaultBillOfMaterial'})"/>
+        if="!__config__.app.getApp('base')?.companySpecificProductFieldsSet?.find({it.name == 'defaultBillOfMaterial'})"/>
       <field name="hasNoManageStock" colSpan="3"/>
       <field name="qty" colSpan="3"/>
       <field name="unit" colSpan="3" form-view="unit-form" grid-view="unit-grid"
         canEdit="false" required="true"/>
       <field name="wasteRate" min="0"/>
-
       <panel name="subProcessConfigurationPanel" title="Sub-process configuration"
         showIf="defineSubBillOfMaterial" colSpan="12" hidden="true">
         <field name="prodProcess" grid-view="prod-process-grid" form-view="prod-process-form"/>
@@ -259,7 +259,7 @@
   <action-record name="action-bill-of-material-record-set-dummy-field"
     model="com.axelor.apps.production.db.BillOfMaterial">
     <field name="$defaultBillOfMaterial"
-      expr="call:com.axelor.apps.production.service.BillOfMaterialService:getDefaultBOM(product)"/>
+      expr="call:com.axelor.apps.production.service.BillOfMaterialService:getDefaultBOM(product,company)"/>
   </action-record>
 
   <action-record name="action-bill-of-material-default-record"
@@ -368,7 +368,7 @@
 
   <action-attrs name="action-bill-of-material-attrs-component-panel-set-canselect">
     <attribute name="value" for="$canSelect"
-      expr="eval:!__config__.app.getApp('base')?.companySpecificProductFieldsList?.find({it.name == 'defaultBillOfMaterial'})"/>
+      expr="eval:!__config__.app.getApp('base')?.companySpecificProductFieldsSet?.find({it.name == 'defaultBillOfMaterial'})"/>
   </action-attrs>
 
 

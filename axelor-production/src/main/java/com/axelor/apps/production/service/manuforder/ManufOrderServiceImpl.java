@@ -920,7 +920,8 @@ public class ManufOrderServiceImpl implements ManufOrderService {
           bomList.add(Pair.of(bom, qtyReq));
         }
       } else {
-        BillOfMaterial defaultBOM = Beans.get(BillOfMaterialService.class).getDefaultBOM(product);
+        BillOfMaterial defaultBOM =
+            Beans.get(BillOfMaterialService.class).getDefaultBOM(product, null);
 
         if ((product.getProductSubTypeSelect()
                     == ProductRepository.PRODUCT_SUB_TYPE_FINISHED_PRODUCT

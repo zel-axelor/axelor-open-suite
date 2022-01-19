@@ -17,6 +17,7 @@
  */
 package com.axelor.apps.production.service;
 
+import com.axelor.apps.base.db.Company;
 import com.axelor.apps.base.db.Product;
 import com.axelor.apps.production.db.BillOfMaterial;
 import com.axelor.apps.production.db.TempBomTree;
@@ -69,5 +70,6 @@ public interface BillOfMaterialService {
       throws AxelorException;
 
   @CallMethod
-  public BillOfMaterial getDefaultBOM(Product originalProduct) throws AxelorException;
+  public BillOfMaterial getDefaultBOM(Product originalProduct, Company company)
+      throws AxelorException;
 }

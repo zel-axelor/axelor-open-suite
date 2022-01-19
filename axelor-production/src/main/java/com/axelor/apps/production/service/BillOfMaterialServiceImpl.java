@@ -320,7 +320,7 @@ public class BillOfMaterialServiceImpl implements BillOfMaterialService {
   @Override
   @Transactional
   public void setBillOfMaterialAsDefault(BillOfMaterial billOfMaterial) throws AxelorException {
-    Company company = AuthUtils.getUser().getActiveCompany();
+    Company company = billOfMaterial.getCompany();
     Product product = billOfMaterial.getProduct();
     if (company != null) {
       productCompanyService.set(product, "defaultBillOfMaterial", billOfMaterial, company);
@@ -397,14 +397,22 @@ public class BillOfMaterialServiceImpl implements BillOfMaterialService {
   }
 
   @Override
-  public BillOfMaterial getDefaultBOM(Product originalProduct) throws AxelorException {
-    Company company = AuthUtils.getUser().getActiveCompany();
-    BillOfMaterial billOfMaterial =
-        (BillOfMaterial)
-            productCompanyService.get(originalProduct, "defaultBillOfMaterial", company);
+  public BillOfMaterial getDefaultBOM(Product originalProduct, Company company)
+      throws AxelorException {
 
-    if (billOfMaterial == null) {
-      billOfMaterial = originalProduct.getDefaultBillOfMaterial();
+    if (company == null) {
+      company = AuthUtils.getUser().getActiveCompany();
+    }
+
+    BillOfMaterial billOfMaterial = null;
+    if (originalProduct != null) {
+      billOfMaterial =
+          (BillOfMaterial)
+              productCompanyService.get(originalProduct, "defaultBillOfMaterial", company);
+
+      if (billOfMaterial == null) {
+        billOfMaterial = originalProduct.getDefaultBillOfMaterial();
+      }
     }
 
     return billOfMaterial;
