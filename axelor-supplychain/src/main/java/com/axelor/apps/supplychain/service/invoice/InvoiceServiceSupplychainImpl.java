@@ -17,8 +17,6 @@
  */
 package com.axelor.apps.supplychain.service.invoice;
 
-import static com.axelor.apps.tool.StringTool.getIdListString;
-
 import com.axelor.apps.account.db.Invoice;
 import com.axelor.apps.account.db.MoveLine;
 import com.axelor.apps.account.db.repo.InvoiceRepository;
@@ -180,22 +178,24 @@ public class InvoiceServiceSupplychainImpl extends InvoiceServiceImpl {
   @Transactional
   public void swapStockMoveInvoices(List<Invoice> invoiceList, Invoice newInvoice) {
     StockMoveRepository stockMoveRepository = Beans.get(StockMoveRepository.class);
-    com.axelor.db.Query<StockMove> stockMoveQuery =
-        stockMoveRepository
-            .all()
-            .filter("self.invoiceSet.id in (" + getIdListString(invoiceList) + ")");
-    stockMoveQuery
-        .fetch()
-        .forEach(
-            stockMove -> {
-              if (stockMove.getInvoiceSet() != null) {
-                stockMove.getInvoiceSet().add(newInvoice);
-              } else {
-                Set<Invoice> invoiceSet = new HashSet<>();
-                invoiceSet.add(newInvoice);
-                stockMove.setInvoiceSet(invoiceSet);
-              }
-              stockMoveRepository.save(stockMove);
-            });
+    for (Invoice invoice : invoiceList) {
+      List<StockMove> stockMoveList =
+          stockMoveRepository
+              .all()
+              .filter(":invoiceId in self.invoiceSet.id")
+              .bind("invoiceId", invoice.getId())
+              .fetch();
+      for (StockMove stockMove : stockMoveList) {
+        if (stockMove.getInvoiceSet() != null) {
+          stockMove.getInvoiceSet().add(newInvoice);
+          stockMove.getInvoiceSet().remove(invoice);
+        } else {
+          Set<Invoice> invoiceSet = new HashSet<>();
+          invoiceSet.add(newInvoice);
+          stockMove.setInvoiceSet(invoiceSet);
+        }
+        stockMoveRepository.save(stockMove);
+      }
+    }
   }
 }
