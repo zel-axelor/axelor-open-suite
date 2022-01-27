@@ -26,6 +26,7 @@ import com.axelor.apps.base.db.Company;
 import com.axelor.apps.base.db.Currency;
 import com.axelor.apps.base.db.Partner;
 import com.axelor.apps.base.db.PriceList;
+import com.axelor.apps.base.db.TradingName;
 import com.axelor.apps.purchase.db.PurchaseOrder;
 import com.axelor.apps.purchase.db.PurchaseOrderLine;
 import com.axelor.exception.AxelorException;
@@ -72,6 +73,7 @@ public interface PurchaseOrderInvoiceService {
       PriceList priceList,
       PaymentMode paymentMode,
       PaymentCondition paymentCondition,
+      TradingName tradingName,
       String supplierInvoiceNb,
       LocalDate originDate,
       PurchaseOrder purchaseOrder)

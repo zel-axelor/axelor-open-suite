@@ -27,6 +27,7 @@ import com.axelor.apps.base.db.Currency;
 import com.axelor.apps.base.db.Partner;
 import com.axelor.apps.base.db.PriceList;
 import com.axelor.apps.base.db.Product;
+import com.axelor.apps.base.db.TradingName;
 import com.axelor.apps.sale.db.SaleOrder;
 import com.axelor.apps.sale.db.SaleOrderLine;
 import com.axelor.apps.sale.db.SaleOrderLineTax;
@@ -258,6 +259,7 @@ public interface SaleOrderInvoiceService {
       PriceList priceList,
       PaymentMode paymentMode,
       PaymentCondition paymentCondition,
+      TradingName tradingName,
       SaleOrder saleOrder)
       throws AxelorException;
 

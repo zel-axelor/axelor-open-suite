@@ -34,6 +34,7 @@ import com.axelor.apps.base.db.Currency;
 import com.axelor.apps.base.db.Partner;
 import com.axelor.apps.base.db.PriceList;
 import com.axelor.apps.base.db.Product;
+import com.axelor.apps.base.db.TradingName;
 import com.axelor.apps.base.db.repo.PriceListLineRepository;
 import com.axelor.apps.base.service.app.AppBaseService;
 import com.axelor.apps.sale.db.SaleOrder;
@@ -807,6 +808,7 @@ public class SaleOrderInvoiceServiceImpl implements SaleOrderInvoiceService {
       PriceList priceList,
       PaymentMode paymentMode,
       PaymentCondition paymentCondition,
+      TradingName tradingName,
       SaleOrder saleOrder)
       throws AxelorException {
     if (saleOrder != null) {
@@ -859,7 +861,8 @@ public class SaleOrderInvoiceServiceImpl implements SaleOrderInvoiceService {
               contactPartner,
               priceList,
               paymentMode,
-              paymentCondition);
+              paymentCondition,
+              tradingName);
       invoiceService.swapStockMoveInvoices(invoiceList, invoiceMerged);
       invoiceService.deleteOldInvoices(invoiceList);
       return invoiceMerged;

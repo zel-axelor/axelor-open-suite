@@ -26,6 +26,7 @@ import com.axelor.apps.base.db.Company;
 import com.axelor.apps.base.db.Currency;
 import com.axelor.apps.base.db.Partner;
 import com.axelor.apps.base.db.PriceList;
+import com.axelor.apps.base.db.TradingName;
 import com.axelor.apps.base.service.app.AppBaseService;
 import com.axelor.apps.businessproject.service.app.AppBusinessProjectService;
 import com.axelor.apps.project.db.Project;
@@ -82,6 +83,7 @@ public class SaleOrderInvoiceProjectServiceImpl extends SaleOrderInvoiceServiceI
       PriceList priceList,
       PaymentMode paymentMode,
       PaymentCondition paymentCondition,
+      TradingName tradingName,
       SaleOrder saleOrder,
       Project project)
       throws AxelorException {
@@ -95,6 +97,7 @@ public class SaleOrderInvoiceProjectServiceImpl extends SaleOrderInvoiceServiceI
             priceList,
             paymentMode,
             paymentCondition,
+            tradingName,
             saleOrder);
     if (project != null
         && !appBusinessProjectService.getAppBusinessProject().getProjectInvoiceLines()) {

@@ -173,6 +173,7 @@ public class InvoiceMergingServiceSupplychainImpl extends InvoiceMergingServiceI
           getCommonFields(result).getCommonPriceList(),
           getCommonFields(result).getCommonPaymentMode(),
           getCommonFields(result).getCommonPaymentCondition(),
+          getCommonFields(result).getTradingName(),
           getCommonFields(result).getCommonSupplierInvoiceNb(),
           getCommonFields(result).getCommonOriginDate(),
           getCommonFields(result).getCommonPurchaseOrder());
@@ -187,6 +188,7 @@ public class InvoiceMergingServiceSupplychainImpl extends InvoiceMergingServiceI
           getCommonFields(result).getCommonPriceList(),
           getCommonFields(result).getCommonPaymentMode(),
           getCommonFields(result).getCommonPaymentCondition(),
+          getCommonFields(result).getTradingName(),
           getCommonFields(result).getCommonSaleOrder());
     }
     return null;

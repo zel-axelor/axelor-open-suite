@@ -53,6 +53,7 @@ import com.axelor.apps.base.db.Company;
 import com.axelor.apps.base.db.Currency;
 import com.axelor.apps.base.db.Partner;
 import com.axelor.apps.base.db.PriceList;
+import com.axelor.apps.base.db.TradingName;
 import com.axelor.apps.base.db.repo.BankDetailsRepository;
 import com.axelor.apps.base.db.repo.PriceListRepository;
 import com.axelor.apps.base.service.PartnerService;
@@ -449,7 +450,8 @@ public class InvoiceServiceImpl extends InvoiceRepository implements InvoiceServ
       Partner contactPartner,
       PriceList priceList,
       PaymentMode paymentMode,
-      PaymentCondition paymentCondition)
+      PaymentCondition paymentCondition,
+      TradingName tradingName)
       throws AxelorException {
     Invoice invoiceMerged =
         mergeInvoice(
@@ -460,7 +462,8 @@ public class InvoiceServiceImpl extends InvoiceRepository implements InvoiceServ
             contactPartner,
             priceList,
             paymentMode,
-            paymentCondition);
+            paymentCondition,
+            tradingName);
     deleteOldInvoices(invoiceList);
     return invoiceMerged;
   }
@@ -475,7 +478,8 @@ public class InvoiceServiceImpl extends InvoiceRepository implements InvoiceServ
       Partner contactPartner,
       PriceList priceList,
       PaymentMode paymentMode,
-      PaymentCondition paymentCondition)
+      PaymentCondition paymentCondition,
+      TradingName tradingName)
       throws AxelorException {
     StringBuilder numSeq = new StringBuilder();
     StringBuilder externalRef = new StringBuilder();
@@ -510,7 +514,7 @@ public class InvoiceServiceImpl extends InvoiceRepository implements InvoiceServ
             externalRef.toString(),
             null,
             company.getDefaultBankDetails(),
-            null) {
+            tradingName) {
 
           @Override
           public Invoice generate() throws AxelorException {
@@ -535,6 +539,7 @@ public class InvoiceServiceImpl extends InvoiceRepository implements InvoiceServ
       PriceList priceList,
       PaymentMode paymentMode,
       PaymentCondition paymentCondition,
+      TradingName tradingName,
       String supplierInvoiceNb,
       LocalDate originDate)
       throws AxelorException {
@@ -548,6 +553,7 @@ public class InvoiceServiceImpl extends InvoiceRepository implements InvoiceServ
             priceList,
             paymentMode,
             paymentCondition,
+            tradingName,
             supplierInvoiceNb,
             originDate);
     deleteOldInvoices(invoiceList);
@@ -565,6 +571,7 @@ public class InvoiceServiceImpl extends InvoiceRepository implements InvoiceServ
       PriceList priceList,
       PaymentMode paymentMode,
       PaymentCondition paymentCondition,
+      TradingName tradingName,
       String supplierInvoiceNb,
       LocalDate originDate)
       throws AxelorException {
@@ -601,7 +608,7 @@ public class InvoiceServiceImpl extends InvoiceRepository implements InvoiceServ
             externalRef.toString(),
             null,
             company.getDefaultBankDetails(),
-            null) {
+            tradingName) {
 
           @Override
           public Invoice generate() throws AxelorException {

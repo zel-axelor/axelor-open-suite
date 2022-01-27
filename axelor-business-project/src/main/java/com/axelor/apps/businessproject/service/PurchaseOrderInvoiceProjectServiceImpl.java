@@ -29,6 +29,7 @@ import com.axelor.apps.base.db.Partner;
 import com.axelor.apps.base.db.PriceList;
 import com.axelor.apps.base.db.PriceListLine;
 import com.axelor.apps.base.db.Product;
+import com.axelor.apps.base.db.TradingName;
 import com.axelor.apps.base.db.repo.AppBaseRepository;
 import com.axelor.apps.base.db.repo.PartnerRepository;
 import com.axelor.apps.base.db.repo.PriceListLineRepository;
@@ -272,6 +273,7 @@ public class PurchaseOrderInvoiceProjectServiceImpl extends PurchaseOrderInvoice
       PriceList priceList,
       PaymentMode paymentMode,
       PaymentCondition paymentCondition,
+      TradingName tradingName,
       String supplierInvoiceNb,
       LocalDate originDate,
       PurchaseOrder purchaseOrder,
@@ -287,6 +289,7 @@ public class PurchaseOrderInvoiceProjectServiceImpl extends PurchaseOrderInvoice
             priceList,
             paymentMode,
             paymentCondition,
+            tradingName,
             supplierInvoiceNb,
             originDate,
             purchaseOrder);

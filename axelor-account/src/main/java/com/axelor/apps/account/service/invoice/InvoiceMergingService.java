@@ -7,6 +7,7 @@ import com.axelor.apps.base.db.Company;
 import com.axelor.apps.base.db.Currency;
 import com.axelor.apps.base.db.Partner;
 import com.axelor.apps.base.db.PriceList;
+import com.axelor.apps.base.db.TradingName;
 import com.axelor.exception.AxelorException;
 import java.time.LocalDate;
 import java.util.List;
@@ -49,6 +50,10 @@ public interface InvoiceMergingService {
     LocalDate getCommonOriginDate();
 
     void setCommonOriginDate(LocalDate commonOriginDate);
+
+    void setTradingName(TradingName tradingName);
+
+    TradingName getTradingName();
   }
 
   interface Checks {
@@ -75,6 +80,10 @@ public interface InvoiceMergingService {
     boolean isExistOriginDateDiff();
 
     void setExistOriginDateDiff(boolean existOriginDateDiff);
+
+    void setExistTradingNameDiff(boolean existTradingNameDiff);
+
+    boolean isExistTradingNameDiff();
   }
 
   interface InvoiceMergingResult {
@@ -104,7 +113,8 @@ public interface InvoiceMergingService {
       Partner contactPartner,
       PriceList priceList,
       PaymentMode paymentMode,
-      PaymentCondition paymentCondition)
+      PaymentCondition paymentCondition,
+      TradingName tradingName)
       throws AxelorException;
 
   InvoiceMergingResult mergeInvoices(
@@ -113,6 +123,7 @@ public interface InvoiceMergingService {
       PriceList priceList,
       PaymentMode paymentMode,
       PaymentCondition paymentCondition,
+      TradingName tradingName,
       String supplierInvoiceNb,
       LocalDate originDate)
       throws AxelorException;

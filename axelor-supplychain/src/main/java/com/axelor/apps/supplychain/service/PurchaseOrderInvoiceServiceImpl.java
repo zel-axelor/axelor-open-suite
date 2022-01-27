@@ -29,6 +29,7 @@ import com.axelor.apps.base.db.Currency;
 import com.axelor.apps.base.db.Partner;
 import com.axelor.apps.base.db.PriceList;
 import com.axelor.apps.base.db.Product;
+import com.axelor.apps.base.db.TradingName;
 import com.axelor.apps.base.service.AddressService;
 import com.axelor.apps.purchase.db.PurchaseOrder;
 import com.axelor.apps.purchase.db.PurchaseOrderLine;
@@ -453,6 +454,7 @@ public class PurchaseOrderInvoiceServiceImpl implements PurchaseOrderInvoiceServ
       PriceList priceList,
       PaymentMode paymentMode,
       PaymentCondition paymentCondition,
+      TradingName tradingName,
       String supplierInvoiceNb,
       LocalDate originDate,
       PurchaseOrder purchaseOrder)
@@ -508,6 +510,7 @@ public class PurchaseOrderInvoiceServiceImpl implements PurchaseOrderInvoiceServ
               priceList,
               paymentMode,
               paymentCondition,
+              tradingName,
               supplierInvoiceNb,
               originDate);
       invoiceService.swapStockMoveInvoices(invoiceList, invoiceMerged);

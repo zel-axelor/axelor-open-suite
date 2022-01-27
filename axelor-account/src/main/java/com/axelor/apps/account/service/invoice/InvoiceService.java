@@ -31,6 +31,7 @@ import com.axelor.apps.base.db.Company;
 import com.axelor.apps.base.db.Currency;
 import com.axelor.apps.base.db.Partner;
 import com.axelor.apps.base.db.PriceList;
+import com.axelor.apps.base.db.TradingName;
 import com.axelor.auth.db.User;
 import com.axelor.exception.AxelorException;
 import com.google.inject.persist.Transactional;
@@ -157,7 +158,8 @@ public interface InvoiceService {
       Partner contactPartner,
       PriceList priceList,
       PaymentMode paymentMode,
-      PaymentCondition paymentCondition)
+      PaymentCondition paymentCondition,
+      TradingName tradingName)
       throws AxelorException;
 
   public Invoice mergeInvoice(
@@ -168,7 +170,8 @@ public interface InvoiceService {
       Partner contactPartner,
       PriceList priceList,
       PaymentMode paymentMode,
-      PaymentCondition paymentCondition)
+      PaymentCondition paymentCondition,
+      TradingName tradingName)
       throws AxelorException;
 
   public Invoice mergeInvoiceProcess(
@@ -180,6 +183,7 @@ public interface InvoiceService {
       PriceList priceList,
       PaymentMode paymentMode,
       PaymentCondition paymentCondition,
+      TradingName tradingName,
       String supplierInvoiceNb,
       LocalDate originDate)
       throws AxelorException;
@@ -193,6 +197,7 @@ public interface InvoiceService {
       PriceList priceList,
       PaymentMode paymentMode,
       PaymentCondition paymentCondition,
+      TradingName tradingName,
       String supplierInvoiceNb,
       LocalDate originDate)
       throws AxelorException;

@@ -8,6 +8,7 @@ import com.axelor.apps.base.db.Company;
 import com.axelor.apps.base.db.Currency;
 import com.axelor.apps.base.db.Partner;
 import com.axelor.apps.base.db.PriceList;
+import com.axelor.apps.base.db.TradingName;
 import com.axelor.exception.AxelorException;
 import com.axelor.exception.db.repo.TraceBackRepository;
 import com.axelor.i18n.I18n;
@@ -35,6 +36,7 @@ public class InvoiceMergingServiceImpl implements InvoiceMergingService {
     private PaymentMode commonPaymentMode = null;
     private String commonSupplierInvoiceNb = null;
     private LocalDate commonOriginDate = null;
+    private TradingName tradingName;
 
     @Override
     public Company getCommonCompany() {
@@ -125,6 +127,16 @@ public class InvoiceMergingServiceImpl implements InvoiceMergingService {
     public void setCommonOriginDate(LocalDate commonOriginDate) {
       this.commonOriginDate = commonOriginDate;
     }
+
+    @Override
+    public void setTradingName(TradingName tradingName) {
+      this.tradingName = tradingName;
+    }
+
+    @Override
+    public TradingName getTradingName() {
+      return tradingName;
+    }
   }
 
   protected static class ChecksImpl implements Checks {
@@ -134,6 +146,7 @@ public class InvoiceMergingServiceImpl implements InvoiceMergingService {
     private boolean existPaymentModeDiff = false;
     private boolean existSupplierInvoiceNbDiff = false;
     private boolean existOriginDateDiff = false;
+    private boolean existTradingNameDiff;
 
     @Override
     public boolean isExistPaymentConditionDiff() {
@@ -193,6 +206,16 @@ public class InvoiceMergingServiceImpl implements InvoiceMergingService {
     @Override
     public void setExistOriginDateDiff(boolean existOriginDateDiff) {
       this.existOriginDateDiff = existOriginDateDiff;
+    }
+
+    @Override
+    public void setExistTradingNameDiff(boolean existTradingNameDiff) {
+      this.existTradingNameDiff = existTradingNameDiff;
+    }
+
+    @Override
+    public boolean isExistTradingNameDiff() {
+      return existTradingNameDiff;
     }
   }
 
@@ -288,7 +311,8 @@ public class InvoiceMergingServiceImpl implements InvoiceMergingService {
       Partner contactPartner,
       PriceList priceList,
       PaymentMode paymentMode,
-      PaymentCondition paymentCondition)
+      PaymentCondition paymentCondition,
+      TradingName tradingName)
       throws AxelorException {
     InvoiceMergingResult result = create();
 
@@ -316,6 +340,9 @@ public class InvoiceMergingServiceImpl implements InvoiceMergingService {
     if (paymentCondition != null) {
       getCommonFields(result).setCommonPaymentCondition(paymentCondition);
     }
+    if (tradingName != null) {
+      getCommonFields(result).setTradingName(tradingName);
+    }
 
     result.setInvoice(mergeInvoices(invoicesToMerge, result));
 
@@ -329,6 +356,7 @@ public class InvoiceMergingServiceImpl implements InvoiceMergingService {
       PriceList priceList,
       PaymentMode paymentMode,
       PaymentCondition paymentCondition,
+      TradingName tradingName,
       String supplierInvoiceNb,
       LocalDate originDate)
       throws AxelorException {
@@ -358,6 +386,9 @@ public class InvoiceMergingServiceImpl implements InvoiceMergingService {
     if (paymentCondition != null) {
       getCommonFields(result).setCommonPaymentCondition(paymentCondition);
     }
+    if (tradingName != null) {
+      getCommonFields(result).setTradingName(tradingName);
+    }
     if (supplierInvoiceNb != null) {
       getCommonFields(result).setCommonSupplierInvoiceNb(supplierInvoiceNb);
     }
@@ -380,6 +411,7 @@ public class InvoiceMergingServiceImpl implements InvoiceMergingService {
       getCommonFields(result).setCommonContactPartner(invoice.getContactPartner());
       getCommonFields(result).setCommonPriceList(invoice.getPriceList());
       getCommonFields(result).setCommonPaymentMode(invoice.getPaymentMode());
+      getCommonFields(result).setTradingName(invoice.getTradingName());
       if (result.getInvoiceType().equals(InvoiceRepository.OPERATION_TYPE_SUPPLIER_PURCHASE)) {
         getCommonFields(result).setCommonSupplierInvoiceNb(invoice.getSupplierInvoiceNb());
         getCommonFields(result).setCommonOriginDate(invoice.getOriginDate());
@@ -420,6 +452,11 @@ public class InvoiceMergingServiceImpl implements InvoiceMergingService {
           && !getCommonFields(result).getCommonPaymentMode().equals(invoice.getPaymentMode())) {
         getCommonFields(result).setCommonPaymentMode(null);
         getChecks(result).setExistPaymentModeDiff(true);
+      }
+      if (getCommonFields(result).getTradingName() != null
+          && !getCommonFields(result).getTradingName().equals(invoice.getTradingName())) {
+        getCommonFields(result).setTradingName(null);
+        getChecks(result).setExistTradingNameDiff(true);
       }
       if (result.getInvoiceType().equals(InvoiceRepository.OPERATION_TYPE_SUPPLIER_PURCHASE)) {
         if (getCommonFields(result).getCommonSupplierInvoiceNb() != null
@@ -463,7 +500,8 @@ public class InvoiceMergingServiceImpl implements InvoiceMergingService {
         || getChecks(result).isExistPriceListDiff()
         || getChecks(result).isExistPaymentModeDiff()
         || getChecks(result).isExistSupplierInvoiceNbDiff()
-        || getChecks(result).isExistOriginDateDiff();
+        || getChecks(result).isExistOriginDateDiff()
+        || getChecks(result).isExistTradingNameDiff();
   }
 
   protected Invoice mergeInvoices(List<Invoice> invoicesToMerge, InvoiceMergingResult result)
@@ -483,6 +521,7 @@ public class InvoiceMergingServiceImpl implements InvoiceMergingService {
           getCommonFields(result).getCommonPriceList(),
           getCommonFields(result).getCommonPaymentMode(),
           getCommonFields(result).getCommonPaymentCondition(),
+          getCommonFields(result).getTradingName(),
           getCommonFields(result).getCommonSupplierInvoiceNb(),
           getCommonFields(result).getCommonOriginDate());
     }
@@ -494,6 +533,7 @@ public class InvoiceMergingServiceImpl implements InvoiceMergingService {
         getCommonFields(result).getCommonContactPartner(),
         getCommonFields(result).getCommonPriceList(),
         getCommonFields(result).getCommonPaymentMode(),
-        getCommonFields(result).getCommonPaymentCondition());
+        getCommonFields(result).getCommonPaymentCondition(),
+        getCommonFields(result).getTradingName());
   }
 }
