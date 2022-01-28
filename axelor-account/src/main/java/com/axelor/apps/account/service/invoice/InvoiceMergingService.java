@@ -51,9 +51,9 @@ public interface InvoiceMergingService {
 
     void setCommonOriginDate(LocalDate commonOriginDate);
 
-    void setTradingName(TradingName tradingName);
+    void setCommonTradingName(TradingName commonTradingName);
 
-    TradingName getTradingName();
+    TradingName getCommonTradingName();
   }
 
   interface Checks {
