@@ -26,6 +26,7 @@ import com.axelor.apps.base.db.repo.ProductCategoryRepository;
 import com.axelor.apps.base.db.repo.ProductRepository;
 import com.axelor.apps.base.service.UnitConversionService;
 import com.axelor.apps.base.service.app.AppBaseService;
+import com.axelor.apps.message.service.MailMessageService;
 import com.axelor.apps.purchase.db.PurchaseOrder;
 import com.axelor.apps.purchase.db.PurchaseOrderLine;
 import com.axelor.apps.purchase.db.SupplierCatalog;
@@ -55,22 +56,26 @@ import com.axelor.apps.supplychain.db.repo.MrpLineTypeRepository;
 import com.axelor.apps.supplychain.db.repo.MrpRepository;
 import com.axelor.apps.supplychain.exception.IExceptionMessage;
 import com.axelor.apps.tool.StringTool;
+import com.axelor.auth.AuthUtils;
 import com.axelor.db.JPA;
 import com.axelor.db.Model;
 import com.axelor.exception.AxelorException;
 import com.axelor.exception.db.repo.TraceBackRepository;
+import com.axelor.exception.service.TraceBackService;
 import com.axelor.i18n.I18n;
-import com.axelor.inject.Beans;
 import com.axelor.meta.MetaStore;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
+import com.google.inject.servlet.RequestScoper;
+import com.google.inject.servlet.ServletScopes;
 import java.lang.invoke.MethodHandles;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -98,9 +103,12 @@ public class MrpServiceImpl implements MrpService {
   protected MrpLineService mrpLineService;
   protected MrpForecastRepository mrpForecastRepository;
   protected StockLocationService stockLocationService;
+  protected MailMessageService mailMessageService;
+  protected UnitConversionService unitConversionService;
   protected ProductCategoryRepository productCategoryRepository;
 
   protected AppBaseService appBaseService;
+  protected AppPurchaseService appPurchaseService;
 
   protected List<StockLocation> stockLocationList;
   protected Map<Long, Integer> productMap;
@@ -109,7 +117,6 @@ public class MrpServiceImpl implements MrpService {
 
   @Inject
   public MrpServiceImpl(
-      AppBaseService appBaseService,
       MrpRepository mrpRepository,
       StockLocationRepository stockLocationRepository,
       ProductRepository productRepository,
@@ -122,8 +129,11 @@ public class MrpServiceImpl implements MrpService {
       MrpLineService mrpLineService,
       MrpForecastRepository mrpForecastRepository,
       StockLocationService stockLocationService,
-      ProductCategoryRepository productCategoryRepository) {
-
+      ProductCategoryRepository productCategoryRepository,
+      MailMessageService mailMessageService,
+      UnitConversionService unitConversionService,
+      AppBaseService appBaseService,
+      AppPurchaseService appPurchaseService) {
     this.mrpRepository = mrpRepository;
     this.stockLocationRepository = stockLocationRepository;
     this.productRepository = productRepository;
@@ -135,20 +145,27 @@ public class MrpServiceImpl implements MrpService {
     this.stockRulesService = stockRulesService;
     this.mrpLineService = mrpLineService;
     this.mrpForecastRepository = mrpForecastRepository;
-    this.productCategoryRepository = productCategoryRepository;
-
-    this.appBaseService = appBaseService;
     this.stockLocationService = stockLocationService;
+    this.productCategoryRepository = productCategoryRepository;
+    this.mailMessageService = mailMessageService;
+    this.unitConversionService = unitConversionService;
+    this.appBaseService = appBaseService;
+    this.appPurchaseService = appPurchaseService;
+  }
+
+  @Override
+  public void setMrp(Mrp mrp) {
+    this.mrp = mrp;
   }
 
   @Override
   public void runCalculation(Mrp mrp) throws AxelorException {
 
-    this.reset(mrp);
+    this.reset(mrpRepository.find(mrp.getId()));
 
     this.startMrp(mrpRepository.find(mrp.getId()));
     this.completeMrp(mrpRepository.find(mrp.getId()));
-    this.doCalulation(mrpRepository.find(mrp.getId()));
+    this.doCalculation(mrpRepository.find(mrp.getId()));
     this.finish(mrpRepository.find(mrp.getId()));
   }
 
@@ -212,7 +229,7 @@ public class MrpServiceImpl implements MrpService {
     this.createSaleForecastMrpLines();
   }
 
-  protected void doCalulation(Mrp mrp) throws AxelorException {
+  protected void doCalculation(Mrp mrp) throws AxelorException {
 
     log.debug("Do calculation");
 
@@ -498,8 +515,7 @@ public class MrpServiceImpl implements MrpService {
 
     Partner supplierPartner = product.getDefaultSupplierPartner();
 
-    if (supplierPartner != null
-        && Beans.get(AppPurchaseService.class).getAppPurchase().getManageSupplierCatalog()) {
+    if (supplierPartner != null && appPurchaseService.getAppPurchase().getManageSupplierCatalog()) {
 
       for (SupplierCatalog supplierCatalog : product.getSupplierCatalogList()) {
 
@@ -662,13 +678,12 @@ public class MrpServiceImpl implements MrpService {
       BigDecimal qty = purchaseOrderLine.getQty().subtract(purchaseOrderLine.getReceivedQty());
       if (!unit.equals(purchaseOrderLine.getUnit())) {
         qty =
-            Beans.get(UnitConversionService.class)
-                .convert(
-                    purchaseOrderLine.getUnit(),
-                    unit,
-                    qty,
-                    qty.scale(),
-                    purchaseOrderLine.getProduct());
+            unitConversionService.convert(
+                purchaseOrderLine.getUnit(),
+                unit,
+                qty,
+                qty.scale(),
+                purchaseOrderLine.getProduct());
       }
       MrpLine mrpLine =
           this.createMrpLine(
@@ -760,13 +775,12 @@ public class MrpServiceImpl implements MrpService {
       BigDecimal qty = saleOrderLine.getQty().subtract(saleOrderLine.getDeliveredQty());
       if (!unit.equals(saleOrderLine.getUnit())) {
         qty =
-            Beans.get(UnitConversionService.class)
-                .convert(
-                    saleOrderLine.getUnit(),
-                    unit,
-                    qty,
-                    saleOrderLine.getQty().scale(),
-                    saleOrderLine.getProduct());
+            unitConversionService.convert(
+                saleOrderLine.getUnit(),
+                unit,
+                qty,
+                saleOrderLine.getQty().scale(),
+                saleOrderLine.getProduct());
       }
 
       MrpLine mrpLine =
@@ -835,8 +849,8 @@ public class MrpServiceImpl implements MrpService {
       BigDecimal qty = mrpForecast.getQty();
       if (!unit.equals(mrpForecast.getUnit())) {
         qty =
-            Beans.get(UnitConversionService.class)
-                .convert(mrpForecast.getUnit(), unit, qty, qty.scale(), mrpForecast.getProduct());
+            unitConversionService.convert(
+                mrpForecast.getUnit(), unit, qty, qty.scale(), mrpForecast.getProduct());
       }
       MrpLine mrpLine =
           this.createMrpLine(
@@ -1171,9 +1185,39 @@ public class MrpServiceImpl implements MrpService {
   }
 
   @Override
+  public Mrp call() throws AxelorException {
+    final RequestScoper scope = ServletScopes.scopeRequest(Collections.emptyMap());
+    try (RequestScoper.CloseableScope ignored = scope.open()) {
+      this.runCalculation(mrp);
+      mailMessageService.sendNotification(
+          AuthUtils.getUser(),
+          String.format(I18n.get(IExceptionMessage.MRP_FINISHED_MESSAGE_SUBJECT), mrp.getMrpSeq()),
+          String.format(I18n.get(IExceptionMessage.MRP_FINISHED_MESSAGE_BODY), mrp.getMrpSeq()),
+          mrp.getId(),
+          mrp.getClass());
+    } catch (Exception e) {
+      onRunnerException(e);
+      throw e;
+    }
+    return mrp;
+  }
+
   @Transactional
-  public void onError(Mrp mrp, Exception e) {
-    reset(mrp);
+  protected void onRunnerException(Exception e) {
+    TraceBackService.trace(e);
+    mailMessageService.sendNotification(
+        AuthUtils.getUser(),
+        String.format(I18n.get(IExceptionMessage.MRP_ERROR_WHILE_COMPUTATION), mrp.getMrpSeq()),
+        e.getMessage(),
+        mrp.getId(),
+        mrp.getClass());
+    this.reset(mrpRepository.find(mrp.getId()));
+    this.saveErrorInMrp(mrpRepository.find(mrp.getId()), e);
+  }
+
+  @Override
+  @Transactional
+  public void saveErrorInMrp(Mrp mrp, Exception e) {
     mrp.setErrorLog(e.getMessage());
   }
 
