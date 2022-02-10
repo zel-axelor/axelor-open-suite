@@ -39,6 +39,7 @@ import com.axelor.apps.production.db.WorkCenter;
 import com.axelor.apps.production.db.repo.CostSheetGroupRepository;
 import com.axelor.apps.production.db.repo.CostSheetLineRepository;
 import com.axelor.apps.production.exceptions.IExceptionMessage;
+import com.axelor.apps.production.service.BillOfMaterialService;
 import com.axelor.apps.production.service.app.AppProductionService;
 import com.axelor.apps.purchase.db.SupplierCatalog;
 import com.axelor.apps.stock.service.WeightedAveragePriceService;
@@ -69,6 +70,7 @@ public class CostSheetLineServiceImpl implements CostSheetLineService {
   protected CurrencyService currencyService;
   protected ShippingCoefService shippingCoefService;
   protected ProductCompanyService productCompanyService;
+  protected BillOfMaterialService billOfMaterialService;
 
   @Inject
   public CostSheetLineServiceImpl(
@@ -92,6 +94,7 @@ public class CostSheetLineServiceImpl implements CostSheetLineService {
     this.currencyService = currencyService;
     this.shippingCoefService = shippingCoefService;
     this.productCompanyService = productCompanyService;
+    this.billOfMaterialService = billOfMaterialService;
   }
 
   public CostSheetLine createCostSheetLine(
@@ -218,7 +221,8 @@ public class CostSheetLineServiceImpl implements CostSheetLineService {
         break;
 
       case CostSheetService.ORIGIN_BULK_UNIT_COST_CALCULATION:
-        BillOfMaterial componentDefaultBillOfMaterial = product.getDefaultBillOfMaterial();
+        BillOfMaterial componentDefaultBillOfMaterial =
+            billOfMaterialService.getDefaultBOM(product, company);
         if (componentDefaultBillOfMaterial != null) {
 
           UnitCostCalcLine unitCostCalcLine =
@@ -407,7 +411,8 @@ public class CostSheetLineServiceImpl implements CostSheetLineService {
     BigDecimal costPrice = null;
     switch (origin) {
       case CostSheetService.ORIGIN_BULK_UNIT_COST_CALCULATION:
-        BillOfMaterial componentDefaultBillOfMaterial = product.getDefaultBillOfMaterial();
+        BillOfMaterial componentDefaultBillOfMaterial =
+            billOfMaterialService.getDefaultBOM(product, company);
         if (componentDefaultBillOfMaterial != null) {
 
           UnitCostCalcLine unitCostCalcLine =
