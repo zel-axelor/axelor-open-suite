@@ -71,8 +71,6 @@ public class MrpServiceProductionImpl extends MrpServiceImpl {
 
   private final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  protected AppBaseService appBaseService;
-
   protected ManufOrderRepository manufOrderRepository;
 
   protected ProductCompanyService productCompanyService;
