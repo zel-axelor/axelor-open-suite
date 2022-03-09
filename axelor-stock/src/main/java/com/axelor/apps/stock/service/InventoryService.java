@@ -211,7 +211,7 @@ public class InventoryService {
       int qtyScale = Beans.get(AppBaseService.class).getAppBase().getNbDecimalDigitForQty();
 
       if (inventoryLineMap.containsKey(code)) {
-        inventoryLineMap.get(code).setRealQty(realQty.setScale(qtyScale, RoundingMode.HALF_EVEN));
+        inventoryLineMap.get(code).setRealQty(realQty.setScale(qtyScale, RoundingMode.HALF_UP));
         inventoryLineMap.get(code).setDescription(description);
       } else {
         BigDecimal currentQty;
@@ -250,8 +250,8 @@ public class InventoryService {
         inventoryLine.setProduct(product);
         inventoryLine.setInventory(inventory);
         inventoryLine.setRack(rack);
-        inventoryLine.setCurrentQty(currentQty.setScale(qtyScale, RoundingMode.HALF_EVEN));
-        inventoryLine.setRealQty(realQty.setScale(qtyScale, RoundingMode.HALF_EVEN));
+        inventoryLine.setCurrentQty(currentQty.setScale(qtyScale, RoundingMode.HALF_UP));
+        inventoryLine.setRealQty(realQty.setScale(qtyScale, RoundingMode.HALF_UP));
         inventoryLine.setDescription(description);
         inventoryLine.setTrackingNumber(this.getTrackingNumber(trackingNumberSeq));
         inventoryLineList.add(inventoryLine);
@@ -542,12 +542,13 @@ public class InventoryService {
             == null) { // if no tracking number on stockLocationLine, check if there is a tracking
           // number on the product
           long numberOfTrackingNumberOnAProduct =
-              stockLocationLineRepository
-                  .all()
+              stockLocationLineList.stream()
                   .filter(
-                      "self.product = ?1 AND self.trackingNumber IS NOT null AND self.detailsStockLocation = ?2",
-                      stockLocationLine.getProduct(),
-                      inventory.getStockLocation())
+                      sll ->
+                          stockLocationLine.getProduct() != null
+                              && stockLocationLine.getProduct().equals(sll.getProduct())
+                              && sll.getTrackingNumber() != null
+                              && inventory.getStockLocation().equals(sll.getDetailsStockLocation()))
                   .count();
 
           if (numberOfTrackingNumberOnAProduct != 0) { // there is a tracking number on the product
