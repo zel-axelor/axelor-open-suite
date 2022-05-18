@@ -22,6 +22,7 @@ import com.axelor.apps.base.callable.ControllerCallableTool;
 import com.axelor.apps.report.engine.ReportSettings;
 import com.axelor.apps.supplychain.db.Mrp;
 import com.axelor.apps.supplychain.db.repo.MrpRepository;
+import com.axelor.apps.supplychain.exception.IExceptionMessage;
 import com.axelor.apps.supplychain.report.IReport;
 import com.axelor.apps.supplychain.service.MrpService;
 import com.axelor.exception.AxelorException;
@@ -53,8 +54,13 @@ public class MrpController {
 
     Mrp mrp = request.getContext().asType(Mrp.class);
     MrpService mrpService = Beans.get(MrpService.class);
+    MrpRepository mrpRepository = Beans.get(MrpRepository.class);
     try {
-      mrpService.setMrp(Beans.get(MrpRepository.class).find(mrp.getId()));
+      if (mrpService.isOnGoing(mrpRepository.find(mrp.getId()))) {
+        response.setFlash(I18n.get(IExceptionMessage.MRP_ALREADY_STARTED));
+        return;
+      }
+      mrpService.setMrp(mrpRepository.find(mrp.getId()));
 
       // Tool class that does not need to be injected
       ControllerCallableTool<Mrp> mrpControllerCallableTool = new ControllerCallableTool<>();
@@ -62,7 +68,7 @@ public class MrpController {
       mrpControllerCallableTool.runInSeparateThread(mrpService, response);
     } catch (Exception e) {
       TraceBackService.trace(response, e);
-      mrpService.saveErrorInMrp(Beans.get(MrpRepository.class).find(mrp.getId()), e);
+      mrpService.saveErrorInMrp(mrpRepository.find(mrp.getId()), e);
     } finally {
       response.setReload(true);
     }

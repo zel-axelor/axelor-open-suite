@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.persistence.PersistenceException;
 
 public class ProductStockRepository extends ProductBaseRepository {
 
@@ -76,9 +77,13 @@ public class ProductStockRepository extends ProductBaseRepository {
                 mapper.get(product, specificField.getName()));
           }
           // specific case for avgPrice per company
-          productCompany.setAvgPrice(
-              weightedAveragePriceService.computeAvgPriceForCompany(
-                  product, stockConfig.getCompany()));
+          try {
+            productCompany.setAvgPrice(
+                weightedAveragePriceService.computeAvgPriceForCompany(
+                    product, stockConfig.getCompany()));
+          } catch (Exception e) {
+            throw new PersistenceException(e.getMessage(), e);
+          }
           productCompany.setCompany(stockConfig.getCompany());
           productCompany.setProduct(product);
           product.addProductCompanyListItem(productCompany);
