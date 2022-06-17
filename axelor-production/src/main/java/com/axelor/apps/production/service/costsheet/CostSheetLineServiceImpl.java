@@ -83,7 +83,8 @@ public class CostSheetLineServiceImpl implements CostSheetLineService {
       UnitCostCalcLineServiceImpl unitCostCalcLineServiceImpl,
       CurrencyService currencyService,
       ShippingCoefService shippingCoefService,
-      ProductCompanyService productCompanyService) {
+      ProductCompanyService productCompanyService,
+      BillOfMaterialService billOfMaterialService) {
     this.appBaseService = appBaseService;
     this.appProductionService = appProductionService;
     this.costSheetGroupRepository = costSheetGroupRepository;
