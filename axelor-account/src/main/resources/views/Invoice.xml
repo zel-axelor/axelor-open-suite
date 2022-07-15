@@ -410,6 +410,9 @@
         <field name="operationTypeSelect"
           hideIf="statusSelect &gt; 1 || partner != null || $readonly() || _operationTypeSelect != 3"
           onChange="action-group-account-invoice-operationtype-onchange" selection-in="[3,4]"/>
+        <field name="operationTypeSelect"
+          hideIf="statusSelect &gt; 1 || partner != null || $readonly() || _operationTypeSelect == 1 || _operationTypeSelect == 3"
+          onChange="action-group-account-invoice-operationtype-onchange"/>
       </panel>
       <field name="company.tradingNameSet" hidden="true" colSpan="12"/>
       <field name="operationSubTypeSelect"
